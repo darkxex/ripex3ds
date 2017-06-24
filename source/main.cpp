@@ -263,17 +263,18 @@ cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
                 consoleClear();
              ret=http_download(arraychapter[arrayselect].c_str());
 
-     int val1=    content.find("gdrive");
+     int val1=    content.find("server=hyperion");
      int val2 = content.find('"',val1);
 
        string gdrive = content.substr(val1,val2 - val1);
-       gdrive = "http://s3.animeflv.com/check.php?server=" + gdrive;
+       gdrive = "http://s3.animeflv.com/check.php?" + gdrive;
 
 
 
 content = "";
 ret=http_download(gdrive.c_str());
-val1 = content.find("http");
+val1 = content.find(":360");
+val1 = content.find("http",val1);
 val2 = content.find('"',val1);
 
 gdrive = content.substr(val1,val2 - val1);

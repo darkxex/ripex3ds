@@ -17,6 +17,8 @@ Result http_download(const char *url)
 	u32 contentsize=0, readsize=0, size=0;
 	u8 *buf, *lastbuf;
 
+ //programacion es mode 0
+ //buscar es mode 1
 
 	gfxFlushBuffers();
 
@@ -69,7 +71,7 @@ Result http_download(const char *url)
 			}
 			ret = httpcGetResponseHeader(&context, "Location", newurl, 0x1000);
 			url = newurl; // Change pointer to the url that we just learned
-			printf("redirecting to url: %s\n",url);
+			//printf("redirecting to url: %s\n",url);
 			httpcCloseContext(&context); // Close this context before we try the next
 		}
 	} while ((statuscode >= 301 && statuscode <= 303) || (statuscode >= 307 && statuscode <= 308));
@@ -163,6 +165,7 @@ Result http_download(const char *url)
 
 
 int main() {
+     int modeapp = 0;
   Result ret=0;
 	gfxInitDefault();
 	httpcInit(0); // Buffer size when POST/PUT.
@@ -203,6 +206,7 @@ cout << arraycount<< ". "<< gdrive.substr(gdrive.rfind("/")+1) << endl;
 arraycount++;
 val1++;
 }
+cout << endl<< "Buscar Serie = R" <<endl << "Lista de Ep. = L" << endl;
 
 
  consoleSelect(&bottomScreen);
@@ -210,7 +214,7 @@ val1++;
        cout << "\x1b[47;30mPresiona A para lanzar el episodio.\x1b[0m" << endl;
    cout <<  arrayselect << "/" <<  arraychapter.size() - 1<< endl;
         cout <<"Nombre: \n" << arraychapter[arrayselect].substr(arraychapter[arrayselect].rfind("/")+1) << endl;
-cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
+//cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
 
 	// Try the following for redirection to the above URL.
 	// ret=http_download("http://tinyurl.com/hd8jwqx");
@@ -224,8 +228,8 @@ cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
 
 u32 kDown = hidKeysDown();
          consoleSelect(&bottomScreen);
-
-if ( kDown & KEY_RIGHT  ){
+if (modeapp == 0)
+    {if ( kDown & KEY_UP  ){
 
         if (arrayselect < arraychapter.size() - 1)
        { consoleClear();
@@ -234,14 +238,14 @@ if ( kDown & KEY_RIGHT  ){
      cout << "\x1b[47;30mPresiona A para lanzar el episodio.\x1b[0m" << endl;
         cout <<  arrayselect << "/" <<  arraychapter.size() - 1<< endl;
            cout <<"Nombre: \n" << arraychapter[arrayselect].substr(arraychapter[arrayselect].rfind("/")+1) << endl;
-cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
+//cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
 
 
 
 }
        	}
 
-       	if ( kDown & KEY_LEFT){
+       	if ( kDown & KEY_DOWN){
 
         if (arrayselect > 0 )
        { consoleClear();
@@ -250,36 +254,55 @@ cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
        cout << "\x1b[47;30mPresiona A para lanzar el episodio.\x1b[0m" << endl;
              cout <<  arrayselect << "/" <<  arraychapter.size() - 1<< endl;
                       cout <<"Nombre: \n" << arraychapter[arrayselect].substr(arraychapter[arrayselect].rfind("/")+1) << endl;
-cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
+//cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
 
 
 }
        	}
+}
 
 
 
+  	if ( kDown & KEY_R){
+
+        modeapp = 1;
+
+         consoleClear();
+           cout << "Por implementar."<<endl;
+       	}
+
+  	if ( kDown & KEY_L){
+
+        modeapp = 0;
+
+         consoleClear();
+          cout << "\x1b[47;30mUse las flechas para elegir.\x1b[0m" << endl;
+     cout << "\x1b[47;30mPresiona A para lanzar el episodio.\x1b[0m" << endl;
+        cout <<  arrayselect << "/" <<  arraychapter.size() - 1<< endl;
+           cout <<"Nombre: \n" << arraychapter[arrayselect].substr(arraychapter[arrayselect].rfind("/")+1) << endl;
+       	}
 
          if(hidKeysDown() & KEY_A){
                 consoleClear();
              ret=http_download(arraychapter[arrayselect].c_str());
 
-     int val1=    content.find("server=hyperion");
+     int val1=    content.find("ok.ru/videoembed/");
      int val2 = content.find('"',val1);
 
        string gdrive = content.substr(val1,val2 - val1);
-       gdrive = "http://s3.animeflv.com/check.php?" + gdrive;
+       gdrive = "https://" + gdrive;
 
 
 
 content = "";
-ret=http_download(gdrive.c_str());
-val1 = content.find(":360");
-val1 = content.find("http",val1);
-val2 = content.find('"',val1);
+//ret=http_download(gdrive.c_str());
+//val1 = content.find(":360");
+//val1 = content.find("http",val1);
+//val2 = content.find('"',val1);
 
-gdrive = content.substr(val1,val2 - val1);
+//gdrive = content.substr(val1,val2 - val1);
  consoleSelect(&bottomScreen);
-cout << gdrive << endl;
+//cout << gdrive << endl;
 	// Try the following for redirection to the above URL.
 	// ret=http_download("http://tinyurl.com/hd8jwqx");
 consoleSelect(&topScreen);

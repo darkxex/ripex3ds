@@ -1,253 +1,231 @@
-.SUFFIXES:
+export DEVKITPRO = /c/devkitPro
+export DEVKITARM = /c/devkitPro/devkitARM
 
 #---------------------------------------------------------------------------------
-# Environment Setup
+.SUFFIXES:
 #---------------------------------------------------------------------------------
-ifeq ($(strip $(DEVKITPRO)),)
-$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>devkitPRO")
-endif
 
 ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
+TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
-# ip address of 3ds for spunch/3dsxlink target.
-IP3DS := 127.0.0.1
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# DATA is a list of directories containing data files
+# INCLUDES is a list of directories containing header files
+#
+# NO_SMDH: if set to anything, no SMDH file is generated.
+# ROMFS is the directory which contains the RomFS, relative to the Makefile (Optional)
+# APP_TITLE is the name of the app stored in the SMDH file (Optional)
+# APP_DESCRIPTION is the description of the app stored in the SMDH file (Optional)
+# APP_AUTHOR is the author of the app stored in the SMDH file (Optional)
+# ICON is the filename of the icon (.png), relative to the project folder.
+#   If not set, it attempts to use one of the following (in this order):
+#     - <Project name>.png
+#     - icon.png
+#     - <libctru folder>/default_icon.png
+#---------------------------------------------------------------------------------
+TARGET		:=	$(notdir $(CURDIR))
+BUILD		:=	build
+SOURCES		:=	source source/pp2d
+DATA		:=	data
+INCLUDES	:=	include
+ROMFS		:=	romfs
+APP_TITLE   :=  Anim3DS
+APP_DESCRIPTION := Anime Watcher
+APP_AUTHOR  :=  Manurocker95
+ICON        :=  icon.png
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
+
+CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+			-fomit-frame-pointer -ffunction-sections \
+			$(ARCH)
+
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+
+ASFLAGS	:=	-g $(ARCH)
+LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+
+LIBS	:= -lsftd -lfreetype -lsfil -lpng -ljpeg -lz -lsf2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
-# Directory Setup
+# list of directories containing libraries, this must be the top level containing
+# include and lib
 #---------------------------------------------------------------------------------
-BUILD := build
-OUTPUT := output
-RESOURCES := resources
-DATA := data
-ROMFS := romfs
-SOURCES := source
-INCLUDES := $(SOURCES) include
+LIBDIRS	:= $(CTRULIB) $(PORTLIBS)
+
 
 #---------------------------------------------------------------------------------
-# Resource Setup
-#---------------------------------------------------------------------------------
-APP_INFO := $(RESOURCES)/AppInfo
-BANNER_AUDIO := $(RESOURCES)/audio
-BANNER_IMAGE := $(RESOURCES)/banner
-ICON := $(RESOURCES)/icon.png
-RSF := $(TOPDIR)/$(RESOURCES)/template.rsf
-
-#---------------------------------------------------------------------------------
-# Build Setup
-#---------------------------------------------------------------------------------
-ARCH := -march=armv6k -mtune=mpcore -mfloat-abi=hard
-
-COMMON_FLAGS := -g -Wall -Wno-strict-aliasing -O3 -mword-relocations -fomit-frame-pointer -ffast-math $(ARCH) $(INCLUDE) -DARM11 -D_3DS $(BUILD_FLAGS)
-CFLAGS := $(COMMON_FLAGS) -std=gnu99
-CXXFLAGS := $(COMMON_FLAGS) -std=gnu++11
-ifeq ($(ENABLE_EXCEPTIONS),)
-	CXXFLAGS += -fno-rtti -fno-exceptions
-endif
-
-ASFLAGS := -g $(ARCH)
-LDFLAGS = -specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
-
-LIBS := -lctru -lm
-LIBDIRS := $(PORTLIBS) $(CTRULIB) ./lib
-
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
 #---------------------------------------------------------------------------------
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export TOPDIR	:=	$(CURDIR)
+
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+PICAFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.v.pica)))
+SHLISTFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+
 #---------------------------------------------------------------------------------
-# Build Variable Setup
+# use CXX for linking C++ projects, CC for standard C
 #---------------------------------------------------------------------------------
-recurse = $(shell find $2 -type $1 -name '$3' 2> /dev/null)
-
-CFILES := $(foreach dir,$(SOURCES),$(notdir $(call recurse,f,$(dir),*.c)))
-CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(call recurse,f,$(dir),*.cpp)))
-SFILES := $(foreach dir,$(SOURCES),$(notdir $(call recurse,f,$(dir),*.s)))
-PICAFILES := $(foreach dir,$(SOURCES),$(notdir $(call recurse,f,$(dir),*.pica)))
-BINFILES := $(foreach dir,$(DATA),$(notdir $(call recurse,f,$(dir),*.*)))
-
-export OFILES := $(addsuffix .o,$(BINFILES)) $(PICAFILES:.pica=.shbin.o) $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-export INCLUDE := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) $(foreach dir,$(LIBDIRS),-I$(dir)/include) -I$(CURDIR)/$(BUILD)
-export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
-
 ifeq ($(strip $(CPPFILES)),)
-	export LD := $(CC)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
 else
-	export LD := $(CXX)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
+
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+			$(PICAFILES:.v.pica=.shbin.o) $(SHLISTFILES:.shlist=.shbin.o) \
+			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+ifeq ($(strip $(ICON)),)
+	icons := $(wildcard *.png)
+	ifneq (,$(findstring $(TARGET).png,$(icons)))
+		export APP_ICON := $(TOPDIR)/$(TARGET).png
+	else
+		ifneq (,$(findstring icon.png,$(icons)))
+			export APP_ICON := $(TOPDIR)/icon.png
+		endif
+	endif
+else
+	export APP_ICON := $(TOPDIR)/$(ICON)
 endif
 
-export DEPSDIR := $(CURDIR)/$(BUILD)
-export VPATH := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir) $(call recurse,d,$(CURDIR)/$(dir),*)) $(foreach dir,$(DATA),$(CURDIR)/$(dir) $(call recurse,d,$(CURDIR)/$(dir),*))
+ifeq ($(strip $(NO_SMDH)),)
+	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
+endif
 
-export TOPDIR := $(CURDIR)
-OUTPUT_DIR := $(TOPDIR)/$(OUTPUT)
+ifneq ($(ROMFS),)
+	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
+endif
 
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
-# Initial Targets
-#---------------------------------------------------------------------------------
-all: $(BUILD) $(OUTPUT_DIR)
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-
-3dsx: $(BUILD) $(OUTPUT_DIR)
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $@
-
-cia: $(BUILD) $(OUTPUT_DIR)
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $@
-
-3ds: $(BUILD) $(OUTPUT_DIR)
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $@
-
-elf: $(BUILD) $(OUTPUT_DIR)
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $@
-
-citra: $(BUILD) $(OUTPUT_DIR)
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $@
-
-3dsxlink: $(BUILD) $(OUTPUT_DIR)
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $@
-
-spunch: $(BUILD) $(OUTPUT_DIR)
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile $@
+all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
-$(OUTPUT_DIR):
-	@[ -d $@ ] || mkdir -p $@
-
+#---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(OUTPUT)
-
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf $(TARGET)-strip.elf $(TARGET).cia $(TARGET).3ds
+#---------------------------------------------------------------------------------
+$(TARGET)-strip.elf: $(BUILD)
+	@$(STRIP) $(TARGET).elf -o $(TARGET)-strip.elf
+#---------------------------------------------------------------------------------
+cci: $(TARGET)-strip.elf
+	@makerom -f cci -rsf resources/$(TARGET).rsf -target d -exefslogo -elf $(TARGET)-strip.elf -o $(TARGET).3ds
+	@echo "built ... 3ds"
+#---------------------------------------------------------------------------------
+cia: $(TARGET)-strip.elf
+	@makerom -f cia -o $(TARGET).cia -elf $(TARGET)-strip.elf -rsf resources/$(TARGET).rsf -icon resources/icon.icn -banner resources/banner.bnr -exefslogo -target t
+	@echo "built ... cia"
 #---------------------------------------------------------------------------------
 else
-#---------------------------------------------------------------------------------
+
+DEPENDS	:=	$(OFILES:.o=.d)
 
 #---------------------------------------------------------------------------------
-# Build Information Setup
+# main targets
 #---------------------------------------------------------------------------------
-DEPENDS := $(OFILES:.o=.d)
-
-include $(TOPDIR)/$(APP_INFO)
-APP_TITLE := $(shell echo "$(APP_TITLE)" | cut -c1-128)
-APP_DESCRIPTION := $(shell echo "$(APP_DESCRIPTION)" | cut -c1-256)
-APP_AUTHOR := $(shell echo "$(APP_AUTHOR)" | cut -c1-128)
-APP_PRODUCT_CODE := $(shell echo $(APP_PRODUCT_CODE) | cut -c1-16)
-APP_UNIQUE_ID := $(shell echo $(APP_UNIQUE_ID) | cut -c1-7)
-ifneq ("$(wildcard $(TOPDIR)/$(BANNER_IMAGE).cgfx)","")
-	BANNER_IMAGE_FILE := $(TOPDIR)/$(BANNER_IMAGE).cgfx
-	BANNER_IMAGE_ARG := -ci $(BANNER_IMAGE_FILE)
+ifeq ($(strip $(NO_SMDH)),)
+$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).smdh
 else
-	BANNER_IMAGE_FILE := $(TOPDIR)/$(BANNER_IMAGE).png
-	BANNER_IMAGE_ARG := -i $(BANNER_IMAGE_FILE)
+$(OUTPUT).3dsx	:	$(OUTPUT).elf
 endif
 
-ifneq ("$(wildcard $(TOPDIR)/$(BANNER_AUDIO).cwav)","")
-	BANNER_AUDIO_FILE := $(TOPDIR)/$(BANNER_AUDIO).cwav
-	BANNER_AUDIO_ARG := -ca $(BANNER_AUDIO_FILE)
-else
-	BANNER_AUDIO_FILE := $(TOPDIR)/$(BANNER_AUDIO).wav
-	BANNER_AUDIO_ARG := -a $(BANNER_AUDIO_FILE)
-endif
-
-EMPTY :=
-SPACE := $(EMPTY) $(EMPTY)
-OUTPUT_NAME := $(subst $(SPACE),,$(APP_TITLE))
-OUTPUT_DIR := $(TOPDIR)/$(OUTPUT)
-OUTPUT_FILE := $(OUTPUT_DIR)/$(OUTPUT_NAME)
-
-APP_ICON := $(TOPDIR)/$(ICON)
-APP_ROMFS := $(TOPDIR)/$(ROMFS)
-
-COMMON_MAKEROM_PARAMS := -rsf $(RSF) -target t -exefslogo -elf $(OUTPUT_FILE).elf -icon icon.icn -banner banner.bnr -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(APP_PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(APP_UNIQUE_ID)" -DAPP_ROMFS="$(APP_ROMFS)" -DAPP_SYSTEM_MODE="64MB" -DAPP_SYSTEM_MODE_EXT="Legacy"
-
-ifeq ($(OS),Windows_NT)
-	MAKEROM = makerom.exe
-	BANNERTOOL = bannertool.exe
-else
-	MAKEROM = makerom
-	BANNERTOOL = bannertool
-endif
-
-_3DSXFLAGS += --smdh=$(OUTPUT_FILE).smdh
-ifneq ("$(wildcard $(TOPDIR)/$(ROMFS))","")
-	_3DSXFLAGS += --romfs=$(TOPDIR)/$(ROMFS)
-endif
+$(OUTPUT).elf	:	$(OFILES)
 
 #---------------------------------------------------------------------------------
-# Main Targets
+# you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------
-.PHONY: all 3dsx cia elf 3ds citra spunch 3dsxlink
-all: $(OUTPUT_FILE).zip $(OUTPUT_FILE).3ds $(OUTPUT_FILE).cia
-
-banner.bnr: $(BANNER_IMAGE_FILE) $(BANNER_AUDIO_FILE)
-	@$(BANNERTOOL) makebanner $(BANNER_IMAGE_ARG) $(BANNER_AUDIO_ARG) -o banner.bnr > /dev/null
-
-icon.icn: $(TOPDIR)/$(ICON)
-	@$(BANNERTOOL) makesmdh -s "$(APP_TITLE)" -l "$(APP_TITLE)" -p "$(APP_AUTHOR)" -i $(TOPDIR)/$(ICON) -o icon.icn > /dev/null
-
-$(OUTPUT_FILE).elf: $(OFILES)
-
-$(OUTPUT_FILE).3dsx: $(OUTPUT_FILE).elf $(OUTPUT_FILE).smdh
-
-$(OUTPUT_FILE).3ds: $(OUTPUT_FILE).elf banner.bnr icon.icn
-	@$(MAKEROM) -f cci -o $(OUTPUT_FILE).3ds -DAPP_ENCRYPTED=true $(COMMON_MAKEROM_PARAMS)
-	@echo "built ... $(notdir $@)"
-
-$(OUTPUT_FILE).cia: $(OUTPUT_FILE).elf banner.bnr icon.icn
-	@$(MAKEROM) -f cia -o $(OUTPUT_FILE).cia -DAPP_ENCRYPTED=false $(COMMON_MAKEROM_PARAMS)
-	@echo "built ... $(notdir $@)"
-
-$(OUTPUT_FILE).zip: $(OUTPUT_FILE).smdh $(OUTPUT_FILE).3dsx
-	@cd $(OUTPUT_DIR); \
-	mkdir -p 3ds/$(OUTPUT_NAME); \
-	cp $(OUTPUT_FILE).3dsx 3ds/$(OUTPUT_NAME); \
-	cp $(OUTPUT_FILE).smdh 3ds/$(OUTPUT_NAME); \
-	zip -r $(OUTPUT_FILE).zip 3ds > /dev/null; \
-	rm -r 3ds
-	@echo "built ... $(notdir $@)"
-
-3dsx : $(OUTPUT_FILE).3dsx
-
-cia : $(OUTPUT_FILE).cia
-
-3ds : $(OUTPUT_FILE).3ds
-
-elf : $(OUTPUT_FILE).elf
-
-citra : $(OUTPUT_FILE).3dsx
-	citra $(OUTPUT_FILE).3dsx
-
-spunch : $(OUTPUT_FILE).cia
-	java -jar ../sockfile-2.0.jar $(IP3DS) $(OUTPUT_FILE).cia
-
-3dsxlink : $(OUTPUT_FILE).3dsx
-	3dslink -a $(IP3DS) $(OUTPUT_FILE).3dsx
-
+%.bin.o	:	%.bin
 #---------------------------------------------------------------------------------
-# Binary Data Rules
-#---------------------------------------------------------------------------------
-%.bin.o: %.bin
 	@echo $(notdir $<)
 	@$(bin2o)
 
-%.shbin.o: %.pica
+#---------------------------------------------------------------------------------
+%.ttf.o	:	%.ttf
+#---------------------------------------------------------------------------------
 	@echo $(notdir $<)
-	$(eval CURBIN := $(patsubst %.pica,%.shbin,$(notdir $<)))
-	$(eval CURH := $(patsubst %.pica,%.psh.h,$(notdir $<)))
-	@picasso -h $(CURH) -o $(CURBIN) $<
-	@bin2s $(CURBIN) | $(AS) -o $@
-	@echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
-	@echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
-	@echo "extern const u32" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
+	@$(bin2o)
+
+# WARNING: This is not the right way to do this! TODO: Do it right!
+#---------------------------------------------------------------------------------
+%.jpeg.o:	%.jpeg
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+#---------------------------------------------------------------------------------
+%.png.o	:	%.png
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+# WARNING: This is not the right way to do this! TODO: Do it right!
+#---------------------------------------------------------------------------------
+# rules for assembling GPU shaders
+#---------------------------------------------------------------------------------
+define shader-as
+	$(eval CURBIN := $(patsubst %.shbin.o,%.shbin,$(notdir $@)))
+	picasso -o $(CURBIN) $1
+	bin2s $(CURBIN) | $(AS) -o $@
+	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
+	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
+	echo "extern const u32" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
+endef
+
+%.shbin.o : %.v.pica %.g.pica
+	@echo $(notdir $^)
+	@$(call shader-as,$^)
+
+%.shbin.o : %.v.pica
+	@echo $(notdir $<)
+	@$(call shader-as,$<)
+
+%.shbin.o : %.shlist
+	@echo $(notdir $<)
+	@$(call shader-as,$(foreach file,$(shell cat $<),$(dir $<)/$(file)))
 
 -include $(DEPENDS)
 
-#---------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 endif
-#---------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------

@@ -1,0 +1,16 @@
+﻿  SceneManager.cpp
+  arm-none-eabi-g++ -MMD -MP -MF /d/Github/Anim3DS/Anim3DS/Anim3DS/build/SceneManager.d -g -Wall -O2 -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/d/Github/Anim3DS/Anim3DS/Anim3DS/include -I/c/devkitPro/libctru/include -I/c/devkitPro/portlibs/armv6k/include -I/c/devkitPro/portlibs/3ds/include -I/d/Github/Anim3DS/Anim3DS/Anim3DS/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -c /d/Github/Anim3DS/Anim3DS/Anim3DS/source/SceneManager.cpp -o SceneManager.o 
+  In file included from d:/Github/Anim3DS/Anim3DS/Anim3DS/source/SplashScreen.h:32:0,
+                   from d:/Github/Anim3DS/Anim3DS/Anim3DS/source/SceneManager.h:26,
+                   from d:/Github/Anim3DS/Anim3DS/Anim3DS/source/SceneManager.cpp:19:
+d:/Github/Anim3DS/Anim3DS/Anim3DS/source/pp2d/pp2d.h(43): warning GD54C37B2: "RGBA8" redefined
+   #define RGBA8(r, g, b, a) ((((r)&0xFF)<<0) | (((g)&0xFF)<<8) | (((b)&0xFF)<<16) | (((a)&0xFF)<<24))
+   
+  In file included from d:/Github/Anim3DS/Anim3DS/Anim3DS/source/SplashScreen.h:24:0,
+                   from d:/Github/Anim3DS/Anim3DS/Anim3DS/source/SceneManager.h:26,
+                   from d:/Github/Anim3DS/Anim3DS/Anim3DS/source/SceneManager.cpp:19:
+  c:/devkitPro/libctru/include/sf2d.h:24:0: note: this is the location of the previous definition
+   #define RGBA8(r, g, b, a) ((((a)&0xFF)<<24) | (((b)&0xFF)<<16) | (((g)&0xFF)<<8) | (((r)&0xFF)<<0))
+   
+  linking Anim3DS.elf
+  built ... Anim3DS.3dsx

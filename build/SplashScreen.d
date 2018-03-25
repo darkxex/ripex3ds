@@ -1,6 +1,7 @@
-main.o: \
- F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/main.cpp \
- C:/devkitPro/libctru/include/3ds.h \
+SplashScreen.o: \
+ F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SplashScreen.cpp \
+ F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SplashScreen.h \
+ C:/devkitPro/libctru/include/sftd.h C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \
  C:/devkitPro/libctru/include/3ds/result.h \
  C:/devkitPro/libctru/include/3ds/ipc.h \
@@ -91,18 +92,20 @@ main.o: \
  C:/devkitPro/libctru/include/c3d/fog.h \
  C:/devkitPro/libctru/include/c3d/framebuffer.h \
  C:/devkitPro/libctru/include/c3d/renderqueue.h \
- C:/devkitPro/libctru/include/sftd.h \
- F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SceneManager.h \
- F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SplashScreen.h \
  C:/devkitPro/libctru/include/sfil.h \
  F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/Settings.h \
  F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/sound.h \
  F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/scene.h \
  F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/Filepaths.h \
+ F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SceneManager.h \
+ F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/Game.h \
  F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/pp2d/pp2d.h \
  F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/pp2d/lodepng.h \
- F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/build/vshader_shbin.h \
- F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/Game.h
+ F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/build/vshader_shbin.h
+
+F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SplashScreen.h:
+
+C:/devkitPro/libctru/include/sftd.h:
 
 C:/devkitPro/libctru/include/3ds.h:
 
@@ -286,12 +289,6 @@ C:/devkitPro/libctru/include/c3d/framebuffer.h:
 
 C:/devkitPro/libctru/include/c3d/renderqueue.h:
 
-C:/devkitPro/libctru/include/sftd.h:
-
-F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SceneManager.h:
-
-F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SplashScreen.h:
-
 C:/devkitPro/libctru/include/sfil.h:
 
 F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/Settings.h:
@@ -302,10 +299,12 @@ F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/scene.h:
 
 F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/Filepaths.h:
 
+F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/SceneManager.h:
+
+F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/Game.h:
+
 F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/pp2d/pp2d.h:
 
 F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/pp2d/lodepng.h:
 
 F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/build/vshader_shbin.h:
-
-F:/Descargas/Anim3DS-master/Anim3DS-master/Anim3DS/Anim3DS/source/Game.h:

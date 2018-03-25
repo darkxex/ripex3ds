@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* This file is part of Anim3DS!
 
 Copyright (C) 2017 Manuel Rodríguez Matesanz
@@ -59,6 +60,31 @@ Copyright (C) 2017 Manuel Rodríguez Matesanz
 #include <sf2d.h>
 #include <sftd.h>
 #include <sys/stat.h>
+=======
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <inttypes.h>
+#include <iostream>
+#include <3ds.h>
+#include <Vector>
+using namespace std;
+string content = "";
+Result http_download(const char *url)
+{
+	Result ret=0;
+	httpcContext context;
+	char *newurl=NULL;
+	u8* framebuf_top;
+	u32 statuscode=0;
+	u32 contentsize=0, readsize=0, size=0;
+	u8 *buf, *lastbuf;
+
+ //programacion es mode 0
+ //buscar es mode 1
+
+	gfxFlushBuffers();
+>>>>>>> afb6aca12b2f2c3c9fa29e07450550a1649680a7
 
 // SceneManager to go into scenes (We can create splashscreen, titlescreen, gamescreen, endscreen...)
 #include "SceneManager.h"
@@ -93,10 +119,25 @@ int main()
 
 	acInit();
 
+<<<<<<< HEAD
 	//Creating folders for our homebrew's save. Just rename the last to your Homebrew Name
 	mkdir("/3ds", 0777);
 	mkdir("/3ds/data", 0777);
 	mkdir("/3ds/data/Anim3DS", 0777);
+=======
+		if ((statuscode >= 301 && statuscode <= 303) || (statuscode >= 307 && statuscode <= 308)) {
+			if(newurl==NULL) newurl = (char*) malloc(0x1000); // One 4K page for new URL
+			if (newurl==NULL){
+				httpcCloseContext(&context);
+				return -1;
+			}
+			ret = httpcGetResponseHeader(&context, "Location", newurl, 0x1000);
+			url = newurl; // Change pointer to the url that we just learned
+			//printf("redirecting to url: %s\n",url);
+			httpcCloseContext(&context); // Close this context before we try the next
+		}
+	} while ((statuscode >= 301 && statuscode <= 303) || (statuscode >= 307 && statuscode <= 308));
+>>>>>>> afb6aca12b2f2c3c9fa29e07450550a1649680a7
 
 	// set the screen background color
 	pp2d_set_screen_color(GFX_TOP, ABGR8(255, 0, 0, 0));
@@ -118,6 +159,7 @@ int main()
 		}
 	}
 
+<<<<<<< HEAD
 	// We Exit the services and end the program
 	romfsExit();
 	ndspExit();
@@ -128,3 +170,197 @@ int main()
 	httpcExit();
 	return 0;
 }
+=======
+     //printf("%s", buf);
+     content = reinterpret_cast<char*>(buf);
+
+
+	gfxFlushBuffers();
+
+	//if(size>(240*400*3*2))size = 240*400*3*2;
+
+	//framebuf_top = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	//memcpy(framebuf_top, buf, size);
+
+	//gfxFlushBuffers();
+	//gfxSwapBuffers();
+
+	//framebuf_top = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	//memcpy(framebuf_top, buf, size);
+
+	gfxFlushBuffers();
+	gfxSwapBuffers();
+	gspWaitForVBlank();
+
+	httpcCloseContext(&context);
+	free(buf);
+	if (newurl!=NULL) free(newurl);
+
+	return 0;
+}
+
+
+int main() {
+     int modeapp = 0;
+  Result ret=0;
+	gfxInitDefault();
+	httpcInit(0); // Buffer size when POST/PUT.
+
+
+PrintConsole topScreen, bottomScreen;
+
+	//Initialize console for both screen using the two different PrintConsole we have defined
+	consoleInit(GFX_TOP, &topScreen);
+	consoleInit(GFX_BOTTOM, &bottomScreen);
+
+
+	ret=http_download("http://animeflv.net/");
+     int vval1= content.find("ltimos episodios");
+     int vval2 = content.find("ltimos animes",vval1);
+
+       content = content.substr(vval1,vval2 - vval1);
+
+         int val1 = 1;
+				        int val2;
+				        int val0 = 0;
+int arrayselect = 0;
+int arraycount = 0;
+vector<string> arraychapter;
+consoleSelect(&topScreen);
+cout << "Lista de Episodios de Hoy:" << endl;
+ while(val0 != -1){
+val0= content.find("/ver/",val1);
+if(val0 == -1){break;}
+
+ val1 =  content.find("/ver/",val1);
+ val2 = (content.find('"',val1));
+ string gdrive = "http://animeflv.net"+ content.substr(val1,val2 - val1);
+
+
+arraychapter.push_back(gdrive);
+cout << arraycount<< ". "<< gdrive.substr(gdrive.rfind("/")+1) << endl;
+arraycount++;
+val1++;
+}
+cout << endl<< "Buscar Serie = R" <<endl << "Lista de Ep. = L" << endl;
+
+
+ consoleSelect(&bottomScreen);
+ cout << "\x1b[47;30mUse las flechas para elegir.\x1b[0m" << endl;
+       cout << "\x1b[47;30mPresiona A para lanzar el episodio.\x1b[0m" << endl;
+   cout <<  arrayselect << "/" <<  arraychapter.size() - 1<< endl;
+        cout <<"Nombre: \n" << arraychapter[arrayselect].substr(arraychapter[arrayselect].rfind("/")+1) << endl;
+//cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
+
+	// Try the following for redirection to the above URL.
+	// ret=http_download("http://tinyurl.com/hd8jwqx");
+
+	gfxFlushBuffers();
+
+
+    while(aptMainLoop()) {
+        gspWaitForVBlank();
+        hidScanInput();
+
+u32 kDown = hidKeysDown();
+         consoleSelect(&bottomScreen);
+if (modeapp == 0)
+    {if ( kDown & KEY_UP  ){
+
+        if (arrayselect < arraychapter.size() - 1)
+       { consoleClear();
+         arrayselect++;
+         cout << "\x1b[47;30mUse las flechas para elegir.\x1b[0m" << endl;
+     cout << "\x1b[47;30mPresiona A para lanzar el episodio.\x1b[0m" << endl;
+        cout <<  arrayselect << "/" <<  arraychapter.size() - 1<< endl;
+           cout <<"Nombre: \n" << arraychapter[arrayselect].substr(arraychapter[arrayselect].rfind("/")+1) << endl;
+//cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
+
+
+
+}
+       	}
+
+       	if ( kDown & KEY_DOWN){
+
+        if (arrayselect > 0 )
+       { consoleClear();
+       arrayselect--;
+       cout << "\x1b[47;30mUse las flechas para elegir.\x1b[0m" << endl;
+       cout << "\x1b[47;30mPresiona A para lanzar el episodio.\x1b[0m" << endl;
+             cout <<  arrayselect << "/" <<  arraychapter.size() - 1<< endl;
+                      cout <<"Nombre: \n" << arraychapter[arrayselect].substr(arraychapter[arrayselect].rfind("/")+1) << endl;
+//cout << "Enlace: \n" << arraychapter[arrayselect]  << endl;
+
+
+}
+       	}
+}
+
+
+
+  	if ( kDown & KEY_R){
+
+        modeapp = 1;
+
+         consoleClear();
+           cout << "Por implementar."<<endl;
+       	}
+
+  	if ( kDown & KEY_L){
+
+        modeapp = 0;
+
+         consoleClear();
+          cout << "\x1b[47;30mUse las flechas para elegir.\x1b[0m" << endl;
+     cout << "\x1b[47;30mPresiona A para lanzar el episodio.\x1b[0m" << endl;
+        cout <<  arrayselect << "/" <<  arraychapter.size() - 1<< endl;
+           cout <<"Nombre: \n" << arraychapter[arrayselect].substr(arraychapter[arrayselect].rfind("/")+1) << endl;
+       	}
+
+         if(hidKeysDown() & KEY_A){
+                consoleClear();
+             ret=http_download(arraychapter[arrayselect].c_str());
+
+     int val1=    content.find("ok.ru/videoembed/");
+     int val2 = content.find('"',val1);
+
+       string gdrive = content.substr(val1,val2 - val1);
+       gdrive = "https://" + gdrive;
+
+
+
+content = "";
+//ret=http_download(gdrive.c_str());
+//val1 = content.find(":360");
+//val1 = content.find("http",val1);
+//val2 = content.find('"',val1);
+
+//gdrive = content.substr(val1,val2 - val1);
+ consoleSelect(&bottomScreen);
+//cout << gdrive << endl;
+	// Try the following for redirection to the above URL.
+	// ret=http_download("http://tinyurl.com/hd8jwqx");
+consoleSelect(&topScreen);
+ consoleClear();
+	cout << "VIDEO EXTRAIDO: PRESIONA START PARA CONTINUAR." << endl;
+APT_PrepareToStartSystemApplet(APPID_WEB);
+APT_StartSystemApplet(APPID_WEB, gdrive.c_str(), 1024, 0);
+
+	gfxFlushBuffers();
+
+            }
+
+
+
+        if(hidKeysDown() & KEY_START)
+            break;
+
+        gfxFlushBuffers();
+        gfxSwapBuffers();
+    }
+
+    gfxExit();
+    return 0;
+}
+>>>>>>> afb6aca12b2f2c3c9fa29e07450550a1649680a7
